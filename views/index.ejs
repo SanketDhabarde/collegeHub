@@ -9,10 +9,15 @@
         </header>
         
            <% colleges.forEach(function(college){ %>
-            <div>
-                <p><%= college.name %></p>
-                <img src="<%= college.image %>" alt="">
-                <p><%= college.description %></p>
+            <div class="row">
+                <div class="col-md-3 col-sm-2">
+                    <div class="img-thumbnail text-center">
+                        <img class="img-thumbnail" src="<%= college.image %>" alt="">
+                        <p><%= college.name %></p>
+                        <p><%= college.description %></p>
+                        <a class="btn btn-primary" href="/colleges/<%= college._id%>">More info</a>
+                    </div>
+                </div>
             </div>
            <% }) %>  
         

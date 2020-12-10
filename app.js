@@ -55,6 +55,18 @@ app.post("/colleges", function(req, res){
     });
 });
 
+// SHOW - to show more info about particular college
+app.get("/colleges/:id", function(req, res){
+    // first find the college in db
+    College.findById(req.params.id, function(err, foundCollege){
+        if(err){
+            console.log(err);
+        }else{
+            res.render("show",{college: foundCollege});
+        }
+    })
+});
+
 app.listen(3000, function(){
     console.log("server started...");
 })
