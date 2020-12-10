@@ -4,9 +4,18 @@
             <h1>Welcome to CollegeHub!</h1>
             <p>look at some best colleges on the basis of MHCET</p>
             <p>
-                <a class="btn btn-primary btn-large" href="">add a new college</a>
+                <a class="btn btn-primary btn-large" href="/colleges/new">add a new college</a>
             </p>
         </header>
+        
+           <% colleges.forEach(function(college){ %>
+            <div>
+                <p><%= college.name %></p>
+                <img src="<%= college.image %>" alt="">
+                <p><%= college.description %></p>
+            </div>
+           <% }) %>  
+        
     </div>
     
 

@@ -1,0 +1,10 @@
+<%- include('partials/header')%>
+    <h1>add a new college</h1>
+    <form action="/colleges" method="POST">
+        <input type="text" name="college[name]" placeholder="college name">
+        <input type="text" name="college[image]" placeholder="image">
+        <input type="text" name="college[description]" placeholder="description">
+        <button>Submit</button>
+    </form>
+
+<%- include('partials/footer')%>
