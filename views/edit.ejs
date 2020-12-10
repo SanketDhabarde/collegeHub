@@ -1,18 +1,18 @@
 <%- include('partials/header')%>
 
     <div class="container">
-        <h1 style="text-align: center; margin-top: 3rem;">add a new college</h1>
+        <h1 style="text-align: center; margin-top: 3rem;">Edit a college</h1>
         <div class="row">
             <div style="margin: auto; width: 30%;">
-                <form action="/colleges" method="POST">
+                <form action="/colleges/<%= college.id %>?_method=PUT" method="POST">
                     <div class="form-group">
-                        <input class="form-control" type="text" name="college[name]" placeholder="college name">
+                        <input class="form-control" type="text" name="college[name]" value="<%= college.name %>">
                     </div>
                     <div class="form-group">
-                        <input class="form-control" type="text" name="college[image]" placeholder="image">
+                        <input class="form-control" type="text" name="college[image]" value="<%= college.image %>">
                     </div>
                     <div class="form-group">
-                        <textarea class="form-control" type="text" name="college[description]" cols="20" rows="5" placeholder="description"></textarea>
+                        <textarea class="form-control" type="text" name="college[description]" cols="20" rows="5"><%= college.description %></textarea>
                     </div>
                     <div class="form-group">
                         <button class="form-control btn btn-large btn-primary">Submit</button>

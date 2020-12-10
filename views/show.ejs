@@ -12,9 +12,15 @@
         <div class="col-md-9">
             <div class="img-thumbnail">
                 <img src="<%=college.image%>" alt="">
-                <div>
-                    <p><%=college.name%></p>
-                    <p><%=college.description%></p>
+                <div class="p-2">
+                    <div>
+                        <p><%=college.name%></p>
+                        <p><%=college.description%></p>
+                    </div>
+                    <a class="btn btn-warning" href="/colleges/<%= college._id%>/edit">Edit</a>
+                    <form id="delete-form" action="/colleges/<%= college._id%>?_method=DELETE" method="POST">
+                        <button class="btn btn-danger">Delete</button>
+                    </form>
                 </div>
             </div>
             <div class="jumbotron">

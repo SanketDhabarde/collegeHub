@@ -1,6 +1,7 @@
 var express = require("express"),
     app = express(),
-    mongoose = require("mongoose");
+    mongoose = require("mongoose"),
+    methodOverride = require("method-override"),
     bodyParser = require("body-parser");
 
 // mongoose config
@@ -18,6 +19,7 @@ var College = mongoose.model("College", collegeSchema);
 app.set("view engine", "ejs");
 app.use(express.static(__dirname + '/public'));
 app.use(bodyParser.urlencoded({extended:true}));
+app.use(methodOverride("_method"));
 
 // ========
 // ROUTING
@@ -63,6 +65,42 @@ app.get("/colleges/:id", function(req, res){
             console.log(err);
         }else{
             res.render("show",{college: foundCollege});
+        }
+    })
+});
+
+// EDIT - to show edit form the info of college
+app.get("/colleges/:id/edit", function(req, res){
+    // found the college you want to edit
+    College.findById(req.params.id, function(err, foundCollege){
+        if(err){
+            console.log(err);
+        }else{
+            res.render("edit", {college: foundCollege});
+        }
+    })
+});
+
+// UPDATE - to update the info
+app.put("/colleges/:id", function(req, res){
+    // find the college and update info
+    College.findByIdAndUpdate(req.params.id, req.body.college, function(err, updatedCollege){
+        if(err){
+            console.log(err);
+        }else{
+            res.redirect("/colleges/"+ req.params.id);
+        }
+    });
+});
+
+// DELETE - to delete the college
+app.delete("/colleges/:id/delete", function(req, res){
+    // find the college and delete it
+    College.findByIdAndRemove(req.params.id, function(err){
+        if(err){
+            console.log(err);
+        }else{
+            res.redirect("/colleges");
         }
     })
 });

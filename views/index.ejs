@@ -7,20 +7,21 @@
                 <a class="btn btn-primary btn-large" href="/colleges/new">add a new college</a>
             </p>
         </header>
-        
+        <div class="row text-center">
            <% colleges.forEach(function(college){ %>
-            <div class="row">
-                <div class="col-md-3 col-sm-2">
-                    <div class="img-thumbnail text-center">
+            
+                <div class="col-md-3 col-sm-6">
+                    <div class="img-thumbnail">
                         <img class="img-thumbnail" src="<%= college.image %>" alt="">
                         <p><%= college.name %></p>
-                        <p><%= college.description %></p>
-                        <a class="btn btn-primary" href="/colleges/<%= college._id%>">More info</a>
+                        <p>
+                            <a class="btn btn-primary" href="/colleges/<%= college._id%>">More info</a>
+                        </p>
                     </div>
                 </div>
-            </div>
+         
            <% }) %>  
-        
+        </div>
     </div>
     
 
