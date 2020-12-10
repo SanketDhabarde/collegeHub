@@ -5,7 +5,7 @@ var express = require("express"),
     bodyParser = require("body-parser");
 
 // mongoose config
-mongoose.connect('mongodb://localhost:27017/college_hub', {useNewUrlParser: true, useUnifiedTopology: true});
+mongoose.connect('mongodb://localhost:27017/college_hub', {useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify:false});
 var collegeSchema = new mongoose.Schema({
     name: String,
     image: String,
