@@ -6,14 +6,28 @@ var express = require("express"),
 
 // mongoose config
 mongoose.connect('mongodb://localhost:27017/college_hub', {useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify:false});
+// college model
 var collegeSchema = new mongoose.Schema({
     name: String,
     image: String,
-    description: String
+    description: String,
+    comments:[
+        {
+            type:mongoose.Schema.Types.ObjectId,
+            ref:"Comment"
+        }
+    ]
 });
 
 var College = mongoose.model("College", collegeSchema);
 
+// comment model
+var commentSchema = new mongoose.Schema({
+    author: String,
+    text : String
+});
+
+var Comment = mongoose.model("Comment", commentSchema);
 
 // app configuration
 app.set("view engine", "ejs");
@@ -21,12 +35,14 @@ app.use(express.static(__dirname + '/public'));
 app.use(bodyParser.urlencoded({extended:true}));
 app.use(methodOverride("_method"));
 
-// ========
 // ROUTING
-// ========
 app.get("/", function(req, res){
     res.render("landing");
 });
+
+// ===========
+// COLLEGE ROUTES
+// =============
 
 // INDEX - to show all the colleges
 app.get("/colleges", function(req, res){
@@ -34,14 +50,14 @@ app.get("/colleges", function(req, res){
         if(err){
             console.log(err);
         }else{
-            res.render("index", {colleges: allCollege});
+            res.render("college/index", {colleges: allCollege});
         }
     });
 });
 
 // NEW - form to add new college
 app.get("/colleges/new", function(req, res){
-    res.render("new");
+    res.render("college/new");
 });
 
 // CREATE - create a new college
@@ -60,11 +76,11 @@ app.post("/colleges", function(req, res){
 // SHOW - to show more info about particular college
 app.get("/colleges/:id", function(req, res){
     // first find the college in db
-    College.findById(req.params.id, function(err, foundCollege){
+    College.findById(req.params.id).populate("comments").exec(function(err, foundCollege){
         if(err){
             console.log(err);
         }else{
-            res.render("show",{college: foundCollege});
+            res.render("college/show",{college: foundCollege});
         }
     })
 });
@@ -76,7 +92,7 @@ app.get("/colleges/:id/edit", function(req, res){
         if(err){
             console.log(err);
         }else{
-            res.render("edit", {college: foundCollege});
+            res.render("college/edit", {college: foundCollege});
         }
     })
 });
@@ -94,13 +110,89 @@ app.put("/colleges/:id", function(req, res){
 });
 
 // DELETE - to delete the college
-app.delete("/colleges/:id/delete", function(req, res){
+app.delete("/colleges/:id", function(req, res){
     // find the college and delete it
     College.findByIdAndRemove(req.params.id, function(err){
         if(err){
             console.log(err);
         }else{
             res.redirect("/colleges");
+        }
+    })
+});
+
+// ========
+// comments routes
+// =========
+
+//NEW - to show the form to add comments
+app.get("/colleges/:id/comments/new", function(req, res){
+    // find the college for which you want to add comments
+    College.findById(req.params.id, function(err, foundCollege){
+        if(err){
+            console.log(err);
+        }else{
+            // render the form
+            res.render("comments/new", {college: foundCollege});
+        }
+    });
+});
+
+// CREATE - to create the comment
+app.post("/colleges/:id/comments", function(req, res){
+    // find the college for which you want to add comments
+    College.findById(req.params.id, function(err, college){
+        if(err){
+            console.log(err);
+        }else{
+            // create the comment
+            Comment.create(req.body.comment, function(err, comment){
+                if(err){
+                    console.log(err);
+                }else{
+                    // save the comment
+                    comment.save();
+                    // add this comment to College db
+                    college.comments.push(comment);
+                    college.save();
+                    res.redirect("/colleges/"+req.params.id);
+                }
+            });
+        }
+    });
+});
+
+// EDIT - edit the comments
+app.get("/colleges/:id/comments/:comment_id/edit", function(req, res){
+    // found the comment you want to edit
+    var college_id=req.params.id;
+    Comment.findById(req.params.comment_id, function(err, foundComment){
+        if(err){
+            console.log(err);
+        }else{
+            res.render("comments/edit",{comment:foundComment, college_id});
+        }
+    })
+});
+
+// UPDATE - UPADATED COMMENT
+app.put("/colleges/:id/comments/:comment_id", function(req, res){
+    Comment.findByIdAndUpdate(req.params.comment_id, req.body.comment, function(err, updatedComment){
+        if(err){
+            console.log(err);
+        }else{
+            res.redirect("/colleges/"+req.params.id);
+        }
+    });
+});
+
+// DELETE - to delte the comment
+app.delete("/colleges/:id/comments/:comment_id", function(req, res){
+    Comment.findByIdAndRemove(req.params.comment_id, function(err){
+        if(err){
+            res.redirect("/colleges/"+req.params.id);
+        }else{
+            res.redirect("/colleges/"+req.params.id);
         }
     })
 });

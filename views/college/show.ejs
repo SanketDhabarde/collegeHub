@@ -1,4 +1,4 @@
-<%- include('partials/header')%>
+<%- include('../partials/header')%>
 
 <div class="container mt-3">
     <div class="row">
@@ -18,18 +18,30 @@
                         <p><%=college.description%></p>
                     </div>
                     <a class="btn btn-warning" href="/colleges/<%= college._id%>/edit">Edit</a>
-                    <form id="delete-form" action="/colleges/<%= college._id%>/delete?_method=DELETE" method="POST">
+                    <form id="delete-form" action="/colleges/<%= college._id%>?_method=DELETE" method="POST">
                         <button class="btn btn-danger">Delete</button>
                     </form>
                 </div>
             </div>
             <div class="jumbotron">
                 <div class="text-right">
-                    <a href="" class="btn btn-large btn-success">Add a comment</a>
+                    <a href="/colleges/<%= college._id%>/comments/new" class="btn btn-large btn-success">Add a comment</a>
                 </div>
                 <hr>
+                <%college.comments.forEach(function(comment){ %>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <strong><%=comment.author%></strong>
+                            <p><%=comment.text%></p>
+                            <a class="btn btn-sm btn-outline-warning" href="/colleges/<%= college._id%>/comments/<%=comment._id%>/edit">Edit</a>
+                            <form id="delete-form" action="/colleges/<%= college._id%>/comments/<%= comment._id%>?_method=DELETE" method="POST">
+                                <button class="btn btn-sm btn-outline-danger">Delete</button>
+                            </form>
+                        </div>
+                    </div>
+                <% }) %> 
             </div>
         </div>
     </div>
 </div>
-<%- include('partials/footer')%>
+<%- include('../partials/footer')%>
