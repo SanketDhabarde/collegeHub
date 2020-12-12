@@ -173,7 +173,7 @@ app.post("/colleges/:id/comments", isLoggedIn, function(req, res){
 });
 
 // EDIT - edit the comments
-app.get("/colleges/:id/comments/:comment_id/edit", function(req, res){
+app.get("/colleges/:id/comments/:comment_id/edit", checkCommentOwnership, function(req, res){
     // found the comment you want to edit
     var college_id=req.params.id;
     Comment.findById(req.params.comment_id, function(err, foundComment){
@@ -186,7 +186,7 @@ app.get("/colleges/:id/comments/:comment_id/edit", function(req, res){
 });
 
 // UPDATE - UPADATED COMMENT
-app.put("/colleges/:id/comments/:comment_id", function(req, res){
+app.put("/colleges/:id/comments/:comment_id", checkCommentOwnership, function(req, res){
     Comment.findByIdAndUpdate(req.params.comment_id, req.body.comment, function(err, updatedComment){
         if(err){
             console.log(err);
@@ -197,7 +197,7 @@ app.put("/colleges/:id/comments/:comment_id", function(req, res){
 });
 
 // DELETE - to delte the comment
-app.delete("/colleges/:id/comments/:comment_id", function(req, res){
+app.delete("/colleges/:id/comments/:comment_id", checkCommentOwnership, function(req, res){
     Comment.findByIdAndRemove(req.params.comment_id, function(err){
         if(err){
             res.redirect("/colleges/"+req.params.id);
@@ -257,7 +257,7 @@ function isLoggedIn(req, res, next){
     res.redirect("/login");
 }
 
-// Authorization
+//college Authorization
 function checkCollegeOwnership(req, res, next){
     // check if there is user
     if(req.isAuthenticated()){
@@ -268,6 +268,28 @@ function checkCollegeOwnership(req, res, next){
             }else{
                 // check if user has submitted the college
                 if(foundCollege.author.id.equals(req.user._id)){
+                    next();
+                }else{
+                    res.redirect("back");
+                }
+            }
+        })
+    }else{
+        res.redirect("/login");
+    }
+}
+
+// comment authorization
+function checkCommentOwnership(req, res, next){
+    // check if user login
+    if(req.isAuthenticated()){
+        // find the comment
+        Comment.findById(req.params.comment_id, function(err, foundComment){
+            if(err){
+                res.redirect("back");
+            }else{
+                // found if same user created comment
+                if(foundComment.author.id.equals(req.user._id)){
                     next();
                 }else{
                     res.redirect("back");
