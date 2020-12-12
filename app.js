@@ -42,7 +42,7 @@ app.get("/", function(req, res){
     res.render("landing");
 });
 
-// ===========
+// =============
 // COLLEGE ROUTES
 // =============
 
@@ -74,8 +74,7 @@ app.post("/colleges", isLoggedIn, function(req, res){
             college.author.id = req.user._id;
             // save the college
             college.save();
-            // show the college on colleges page
-            console.log(college);
+            // show the college on index page
             res.redirect("/colleges");
         }
     });
@@ -94,7 +93,7 @@ app.get("/colleges/:id", function(req, res){
 });
 
 // EDIT - to show edit form the info of college
-app.get("/colleges/:id/edit", function(req, res){
+app.get("/colleges/:id/edit", checkCollegeOwnership, function(req, res){
     // found the college you want to edit
     College.findById(req.params.id, function(err, foundCollege){
         if(err){
@@ -106,7 +105,7 @@ app.get("/colleges/:id/edit", function(req, res){
 });
 
 // UPDATE - to update the info
-app.put("/colleges/:id", function(req, res){
+app.put("/colleges/:id", checkCollegeOwnership, function(req, res){
     // find the college and update info
     College.findByIdAndUpdate(req.params.id, req.body.college, function(err, updatedCollege){
         if(err){
@@ -118,7 +117,7 @@ app.put("/colleges/:id", function(req, res){
 });
 
 // DELETE - to delete the college
-app.delete("/colleges/:id", function(req, res){
+app.delete("/colleges/:id", checkCollegeOwnership, function(req, res){
     // find the college and delete it
     College.findByIdAndRemove(req.params.id, function(err){
         if(err){
@@ -257,6 +256,29 @@ function isLoggedIn(req, res, next){
     }
     res.redirect("/login");
 }
+
+// Authorization
+function checkCollegeOwnership(req, res, next){
+    // check if there is user
+    if(req.isAuthenticated()){
+        // find the college from db
+        College.findById(req.params.id, function(err, foundCollege){
+            if(err){
+                res.redirect("back");
+            }else{
+                // check if user has submitted the college
+                if(foundCollege.author.id.equals(req.user._id)){
+                    next();
+                }else{
+                    res.redirect("back");
+                }
+            }
+        })
+    }else{
+        res.redirect("/login");
+    }
+}
+
 
 app.listen(3000, function(){
     console.log("server started...");
