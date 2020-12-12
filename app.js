@@ -2,38 +2,40 @@ var express = require("express"),
     app = express(),
     mongoose = require("mongoose"),
     methodOverride = require("method-override"),
+    College = require("./models/college"),
+    Comment = require("./models/comment"),
+    User = require("./models/user"),
+    passport = require("passport");
+    localStrategy = require("passport-local"),
     bodyParser = require("body-parser");
 
 // mongoose config
 mongoose.connect('mongodb://localhost:27017/college_hub', {useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify:false});
-// college model
-var collegeSchema = new mongoose.Schema({
-    name: String,
-    image: String,
-    description: String,
-    comments:[
-        {
-            type:mongoose.Schema.Types.ObjectId,
-            ref:"Comment"
-        }
-    ]
-});
-
-var College = mongoose.model("College", collegeSchema);
-
-// comment model
-var commentSchema = new mongoose.Schema({
-    author: String,
-    text : String
-});
-
-var Comment = mongoose.model("Comment", commentSchema);
 
 // app configuration
 app.set("view engine", "ejs");
 app.use(express.static(__dirname + '/public'));
 app.use(bodyParser.urlencoded({extended:true}));
 app.use(methodOverride("_method"));
+
+//passport config
+app.use(require("express-session")({
+    secret: "sanket is best!",
+    resave: false,
+    saveUninitialized: false
+}));
+app.use(passport.initialize());
+app.use(passport.session());
+passport.use(new localStrategy(User.authenticate()));
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser()); 
+
+// middleware of currentUser for all routes
+app.use(function(req, res, next){
+    // res.locals is for all the routes
+    res.locals.currentUser = req.user;
+    next();
+});
 
 // ROUTING
 app.get("/", function(req, res){
@@ -56,12 +58,12 @@ app.get("/colleges", function(req, res){
 });
 
 // NEW - form to add new college
-app.get("/colleges/new", function(req, res){
+app.get("/colleges/new", isLoggedIn, function(req, res){
     res.render("college/new");
 });
 
 // CREATE - create a new college
-app.post("/colleges", function(req, res){
+app.post("/colleges", isLoggedIn, function(req, res){
     // create a new college abd save in db
     College.create(req.body.college, function(err, college){
         if(err){
@@ -121,12 +123,12 @@ app.delete("/colleges/:id", function(req, res){
     })
 });
 
-// ========
+// ===============
 // comments routes
-// =========
+// ===============
 
 //NEW - to show the form to add comments
-app.get("/colleges/:id/comments/new", function(req, res){
+app.get("/colleges/:id/comments/new", isLoggedIn, function(req, res){
     // find the college for which you want to add comments
     College.findById(req.params.id, function(err, foundCollege){
         if(err){
@@ -139,7 +141,7 @@ app.get("/colleges/:id/comments/new", function(req, res){
 });
 
 // CREATE - to create the comment
-app.post("/colleges/:id/comments", function(req, res){
+app.post("/colleges/:id/comments", isLoggedIn, function(req, res){
     // find the college for which you want to add comments
     College.findById(req.params.id, function(err, college){
         if(err){
@@ -196,6 +198,56 @@ app.delete("/colleges/:id/comments/:comment_id", function(req, res){
         }
     })
 });
+
+// ===========
+// AUTH ROUTES
+// ===========
+
+// form to register the user
+app.get("/register", function(req, res){
+    res.render("register");
+});
+
+// handle the sign up logic
+app.post("/register", function(req, res){
+    var newUser = new User({username: req.body.username});
+    // register the user
+    User.register(newUser, req.body.password, function(err, user){
+        if(err){
+            console.log(err);
+            return res.redirect("/register");
+        }
+        passport.authenticate("local")(req, res, function(){
+            res.redirect("/colleges");
+        });
+    });
+});
+
+// to show login form
+app.get("/login", function(req, res){
+    res.render("login");
+});
+
+// handle login logic
+app.post("/login", passport.authenticate("local", {
+    successRedirect: "/colleges",
+    failureRedirect: "/login"
+}), function(req, res){
+});
+
+// logout 
+app.get("/logout", function(req, res){
+    req.logout();
+    res.redirect("/colleges");
+});
+
+// middleware for user auth
+function isLoggedIn(req, res, next){
+    if(req.isAuthenticated()){
+        return next();
+    }
+    res.redirect("/login");
+}
 
 app.listen(3000, function(){
     console.log("server started...");
