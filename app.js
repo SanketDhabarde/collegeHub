@@ -1,11 +1,12 @@
 var express = require("express"),
     app = express(),
     mongoose = require("mongoose"),
+    flash = require("connect-flash"),
     methodOverride = require("method-override"),
     College = require("./models/college"),
     Comment = require("./models/comment"),
     User = require("./models/user"),
-    passport = require("passport");
+    passport = require("passport"),
     localStrategy = require("passport-local"),
     bodyParser = require("body-parser");
 
@@ -17,6 +18,7 @@ app.set("view engine", "ejs");
 app.use(express.static(__dirname + '/public'));
 app.use(bodyParser.urlencoded({extended:true}));
 app.use(methodOverride("_method"));
+app.use(flash());
 
 //passport config
 app.use(require("express-session")({
@@ -34,6 +36,8 @@ passport.deserializeUser(User.deserializeUser());
 app.use(function(req, res, next){
     // res.locals is for all the routes
     res.locals.currentUser = req.user;
+    res.locals.success = req.flash("success");
+    res.locals.error = req.flash("error");
     next();
 });
 
@@ -75,6 +79,7 @@ app.post("/colleges", isLoggedIn, function(req, res){
             // save the college
             college.save();
             // show the college on index page
+            req.flash("success", "College added successfully!");
             res.redirect("/colleges");
         }
     });
@@ -111,6 +116,7 @@ app.put("/colleges/:id", checkCollegeOwnership, function(req, res){
         if(err){
             console.log(err);
         }else{
+            req.flash("success", "College info edited successfully!");
             res.redirect("/colleges/"+ req.params.id);
         }
     });
@@ -123,6 +129,7 @@ app.delete("/colleges/:id", checkCollegeOwnership, function(req, res){
         if(err){
             console.log(err);
         }else{
+            req.flash("success", "College is deleted!!");
             res.redirect("/colleges");
         }
     })
@@ -191,6 +198,7 @@ app.put("/colleges/:id/comments/:comment_id", checkCommentOwnership, function(re
         if(err){
             console.log(err);
         }else{
+            req.flash("success", "Comment edited successfully!");
             res.redirect("/colleges/"+req.params.id);
         }
     });
@@ -204,7 +212,7 @@ app.delete("/colleges/:id/comments/:comment_id", checkCommentOwnership, function
         }else{
             res.redirect("/colleges/"+req.params.id);
         }
-    })
+    });
 });
 
 // ===========
@@ -223,9 +231,11 @@ app.post("/register", function(req, res){
     User.register(newUser, req.body.password, function(err, user){
         if(err){
             console.log(err);
+            req.flash("error", err.message);
             return res.redirect("/register");
         }
         passport.authenticate("local")(req, res, function(){
+            req.flash("success", "Welcome to college hub "+ user.username);
             res.redirect("/colleges");
         });
     });
@@ -246,6 +256,7 @@ app.post("/login", passport.authenticate("local", {
 // logout 
 app.get("/logout", function(req, res){
     req.logout();
+    req.flash("success", "successfully logged you out!")
     res.redirect("/colleges");
 });
 
@@ -254,6 +265,7 @@ function isLoggedIn(req, res, next){
     if(req.isAuthenticated()){
         return next();
     }
+    req.flash("error", "you need to login first!");
     res.redirect("/login");
 }
 
@@ -270,11 +282,13 @@ function checkCollegeOwnership(req, res, next){
                 if(foundCollege.author.id.equals(req.user._id)){
                     next();
                 }else{
+                    req.flash("error", "You are not authorized to do that!")
                     res.redirect("back");
                 }
             }
         })
     }else{
+        req.flash("error", "You need to login to do that!");
         res.redirect("/login");
     }
 }
@@ -292,11 +306,13 @@ function checkCommentOwnership(req, res, next){
                 if(foundComment.author.id.equals(req.user._id)){
                     next();
                 }else{
+                    req.flash("error", "You are not authorized to do that!");
                     res.redirect("back");
                 }
             }
         })
     }else{
+        req.flash("error", "You need to login to do that!");
         res.redirect("/login");
     }
 }
