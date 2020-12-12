@@ -20,10 +20,13 @@
                             <em>Submitted by <%= college.author.username %></em>
                         </p>
                     </div>
-                    <a class="btn btn-warning" href="/colleges/<%= college._id%>/edit">Edit</a>
-                    <form id="delete-form" action="/colleges/<%= college._id%>?_method=DELETE" method="POST">
-                        <button class="btn btn-danger">Delete</button>
-                    </form>
+                   <% if(currentUser && college.author.id.equals(currentUser._id)){ %>
+                        <a class="btn btn-warning" href="/colleges/<%= college._id%>/edit">Edit</a>
+                        <form id="delete-form" action="/colleges/<%= college._id%>?_method=DELETE" method="POST">
+                            <button class="btn btn-danger">Delete</button>
+                        </form>
+                   <% } %>
+                    
                 </div>
             </div>
             <div class="jumbotron">
@@ -36,10 +39,13 @@
                         <div class="col-md-12">
                             <strong><%= comment.author.username %></strong>
                             <p><%=comment.text%></p>
-                            <a class="btn btn-sm btn-outline-warning" href="/colleges/<%= college._id%>/comments/<%=comment._id%>/edit">Edit</a>
-                            <form id="delete-form" action="/colleges/<%= college._id%>/comments/<%= comment._id%>?_method=DELETE" method="POST">
-                                <button class="btn btn-sm btn-outline-danger">Delete</button>
-                            </form>
+                           <% if(currentUser && comment.author.id.equals(currentUser._id)){ %>
+                                <a class="btn btn-sm btn-outline-warning" href="/colleges/<%= college._id%>/comments/<%=comment._id%>/edit">Edit</a>
+                                <form id="delete-form" action="/colleges/<%= college._id%>/comments/<%= comment._id%>?_method=DELETE" method="POST">
+                                    <button class="btn btn-sm btn-outline-danger">Delete</button>
+                                </form>
+                           <% } %>
+                            
                         </div>
                     </div>
                 <% }) %> 
