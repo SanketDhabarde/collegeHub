@@ -69,7 +69,13 @@ app.post("/colleges", isLoggedIn, function(req, res){
         if(err){
             console.log(err);
         }else{
+            // add username and id to college
+            college.author.username = req.user.username;
+            college.author.id = req.user._id;
+            // save the college
+            college.save();
             // show the college on colleges page
+            console.log(college);
             res.redirect("/colleges");
         }
     });
@@ -152,6 +158,9 @@ app.post("/colleges/:id/comments", isLoggedIn, function(req, res){
                 if(err){
                     console.log(err);
                 }else{
+                    // add id and username to comment
+                    comment.author.id= req.user._id;
+                    comment.author.username=req.user.username;
                     // save the comment
                     comment.save();
                     // add this comment to College db
